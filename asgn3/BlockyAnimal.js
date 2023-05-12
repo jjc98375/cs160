@@ -15,6 +15,8 @@ var u_ProjectionMatrix;
 var u_ViewMatrix;
 var u_GlobalRotateMatrix;
 var u_Sampler0;
+var u_whichTexture;
+var u_workingTexture;
 
 // Array
 var g_shapesList = [];
@@ -40,12 +42,12 @@ var VSHADER_SOURCE = `
   varying vec2 v_UV;
   uniform mat4 u_ModelMatrix;
   uniform mat4 u_GlobalRotateMatrix;
-  uniform mat4 u_ViewMatrix;
-  uniform mat4 u_ProjectionMatrix;
+  // uniform mat4 u_ViewMatrix;
+  // uniform mat4 u_ProjectionMatrix;
 
   void main() {
-    gl_Position = u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
-    // gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
+   gl_Position = u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
+  // gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
 
     v_UV = a_UV;
   }`;
@@ -56,10 +58,30 @@ var FSHADER_SOURCE = `
   varying vec2 v_UV;
   uniform vec4 u_FragColor;
   uniform sampler2D u_Sampler0;
+  uniform int u_whichTexture;
+
   void main() {
-     gl_FragColor = u_FragColor;
-     gl_FragColor = vec4(v_UV, 1.0, 1.0);
-    gl_FragColor = texture2D(u_Sampler0, v_UV);
+
+
+
+    
+
+
+    if(u_whichTexture == -2) { //use color
+      gl_FragColor = u_FragColor;
+    } else if (u_whichTexture == -1) { //use uv debug color
+      gl_FragColor = vec4(v_UV, 1.0, 1.0);
+    } else if(u_whichTexture == 0) {
+      gl_FragColor = texture2D(u_Sampler0, v_UV);
+    } else {
+      gl_FragColor = vec4(1, .2, .2, 1);
+    }
+
+
+
+    //  gl_FragColor = u_FragColor;
+    //  gl_FragColor = vec4(v_UV, 1.0, 1.0);
+    // gl_FragColor = texture2D(u_Sampler0, v_UV);
   }`;
 
 // Click ==========================================================
@@ -118,9 +140,6 @@ function addActionsForHtmlUI() {
       g_globalAngle = this.value;
       renderAllShapes();
     });
-  
-
-    
 }
 
 // Get Canvas and GL Context ======================================
@@ -185,28 +204,37 @@ function connectVariablesToGLSL() {
     return;
   }
 
-  u_ViewMatrix = gl.getUniformLocation(gl.program, "u_ViewMatrix");
-  if (!u_ViewMatrix) {
-    console.log("Failed to get u_ViewMatrix");
-    return;
-  }
+  // u_ViewMatrix = gl.getUniformLocation(gl.program, "u_ViewMatrix");
+  // if (!u_ViewMatrix) {
+  //   console.log("Failed to get u_ViewMatrix");
+  //   return;
+  // }
 
-  u_ProjectionMatrix = gl.getUniformLocation(gl.program, "u_ProjectionMatrix");
-  if (!u_ProjectionMatrix) {
-    console.log("Failed to get u_ProjectionMatrix");
-    return;
-  }
+  // u_ProjectionMatrix = gl.getUniformLocation(gl.program, "u_ProjectionMatrix");
+  // if (!u_ProjectionMatrix) {
+  //   console.log("Failed to get u_ProjectionMatrix");
+  //   return;
+  // }
 
-  u_Sampler0 = gl.getUniformLocation(gl.program, 'u_Sampler0');
+  u_Sampler0 = gl.getUniformLocation(gl.program, "u_Sampler0");
   if (!u_Sampler0) {
-    console.log('Failed to get the storage location of u_Sampler0');
+    console.log("Failed to get the storage location of u_Sampler0");
     return false;
   }
 
+  u_whichTexture = gl.getUniformLocation(gl.program, "u_whichTexture");
+  if (!u_whichTexture) {
+    console.log("Failed to get the storage location of u_whichTexture");
+    return;
+  }
+
+
+
   var identityM = new Matrix4();
   gl.uniformMatrix4fv(u_ModelMatrix, false, identityM.elements);
-
-
+  // gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, identityM.elements);
+  gl.uniformMatrix4fv(u_ProjectionMatrix, false, identityM.elements);
+  gl.uniformMatrix4fv(u_ViewMatrix, false, identityM.elements);
 }
 
 var g_startTime = performance.now() / 1000.0;
@@ -252,7 +280,6 @@ var K = 10.0;
 
 // Texture Stuff ==================================================
 function initTextures() {
-
   var image = new Image();
   if (!image) {
     console.log("Failed to create the image object");
@@ -303,7 +330,6 @@ function main() {
   // Initialize body, yellow, magenta, and c[] first outside of the renderAllShapes() function
   // and optimize the algorithm
 
-
   initTextures();
 
   // Specify the color for clearing <canvas>
@@ -323,12 +349,12 @@ function renderAllShapes() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-
-    // ------------------------------------------------------------------
- // Draw Shapes !!! ------------------------------------------------
-// ------------------------------------------------------------------
+  // ------------------------------------------------------------------
+  // Draw Shapes !!! ------------------------------------------------
+  // ------------------------------------------------------------------
   // Draw the body cube
   body = new Cube();
+  body.textureNum = 0;
   body.color = [1.0, 0.0, 0.0, 1.0];
   body.matrix
     .setTranslate(-0.25, -0.75, 0.0)
@@ -338,6 +364,7 @@ function renderAllShapes() {
 
   // Draw a left arm
   yellow = new Cube();
+  yellow.textureNum = -1;
   yellow.color = [1, 1, 0, 1];
   yellow.matrix
     .setTranslate(0, -0.5, 0.0)
@@ -349,6 +376,7 @@ function renderAllShapes() {
 
   // Test box
   magenta = new Cube();
+  magenta.textureNum = -2;
   magenta.color = [1, 0, 1, 1];
   magenta.matrix.set(yellowCoordinates);
   magenta.matrix
@@ -378,9 +406,8 @@ function renderAllShapes() {
     "numdot"
   );
   // ------------------------------------------------------------------
- // Draw Shapes !!! ------------------------------------------------
-// ------------------------------------------------------------------
-  
+  // Draw Shapes !!! ------------------------------------------------
+  // ------------------------------------------------------------------
 }
 
 function sendTextToHTML(text, htmlID) {
