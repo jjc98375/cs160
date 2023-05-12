@@ -40,8 +40,8 @@ var VSHADER_SOURCE = `
   varying vec2 v_UV;
   uniform mat4 u_ModelMatrix;
   uniform mat4 u_GlobalRotateMatrix;
-  // uniform mat4 u_ViewMatrix;
-  // uniform mat4 u_ProjectionMatrix;
+  uniform mat4 u_ViewMatrix;
+  uniform mat4 u_ProjectionMatrix;
 
   void main() {
     gl_Position = u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
@@ -59,7 +59,7 @@ var FSHADER_SOURCE = `
   void main() {
      gl_FragColor = u_FragColor;
      gl_FragColor = vec4(v_UV, 1.0, 1.0);
-    // gl_FragColor = texture2D(u_Sampler0, v_UV);
+    gl_FragColor = texture2D(u_Sampler0, v_UV);
   }`;
 
 // Click ==========================================================
@@ -261,7 +261,7 @@ function initTextures() {
   image.onload = function () {
     sendImageToTexture0(image);
   };
-  image.src = "sky.jpg";
+  image.src = "sky2.jpg";
 
   return true;
 }
