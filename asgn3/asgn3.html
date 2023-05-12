@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+
+<body onload="main()">
+   <!-- Create a canvas (400x400) Note: size and origin -->
+   <canvas id="webgl" width="400" height="400">
+      Please use a browser that supports "canvas"
+   </canvas>
+
+   <br>
+   <p id="numdot">XXX </p>
+    <br>
+
+
+
+    <p>
+      Magenta <input type="range" min="-45" max="45" value="0" class="slider" id="magentaSlide">
+      Animation:
+      <button type="button" id="animationMagentaOnButton">ON</button>
+      <button type="button" id="animationMagentaOffButton">OFF</button>
+    </p>
+
+    <p>
+      Yellow <input type="range" min="-45" max="45" value="0" class="slider" id="yellowSlide">
+      Animation:
+      <button type="button" id="animationYellowOnButton">ON</button>
+      <button type="button" id="animationYellowOffButton">OFF</button>
+
+    </p>
+
+    <p>
+      Camera Angle <input type="range" min="0" max="90" value="5" class="slider" id="angleSlide">
+
+    </p>
+
+
+
+
+   <br><br>
+  
+   <br><br>
+
+
+
+
+
+   <!-- javascript files containing functions for WebGL -->
+   <script src="lib/webgl-utils.js"></script>
+   <script src="lib/webgl-debug.js"></script>
+   <script src="lib/cuon-utils.js"></script>
+   <script src="lib/cuon-matrix-cse160.js"></script>
+
+   <!-- Add our asg js file -->
+   <script type=text/javascript src="Triangle.js"></script>
+   <script type=text/javascript src="Point.js"></script>
+   <script type=text/javascript src="Circle.js"></script>
+   <script type=text/javascript src="BlockyAnimal.js"></script>
+   <script type=text/javascript src="Cube.js"></script>
+
+
+</body>
+</html>
+
+<style>
+
+</style>
