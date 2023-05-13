@@ -81,27 +81,6 @@ var FSHADER_SOURCE = `
     }
   }`;
 
-// Click ==========================================================
-// function click(ev) {
-//   var [x, y] = convertCoordinatesEventToGL(ev);
-//   var point;
-//   if (g_selectedType == POINT) {
-//     point = new Point();
-//   } else if (g_selectedType == TRIANGLE) {
-//     point = new Triangle();
-//   } else if (g_selectedType == CIRCLE) {
-//     point = new Circle();
-//     point.sCount = g_selectedsCount;
-//   }
-
-//   point.position = [x, y];
-//   point.color = g_selectedColor.slice();
-//   point.size = g_selectedSize;
-//   g_shapesList.push(point);
-
-//   // Draw every shape that is suppose to be in the canvas
-//   renderAllShapes();
-// }
 
 // Compile Shader Programs and connect js to GLSL =================
 function connectVariablesToGLSL() {
@@ -280,13 +259,6 @@ function main() {
   g_camera = new Camera();
   document.onkeydown = keydown;
 
-  // canvas.onmousemove = function (ev) {
-  //   mouseCam(ev);
-  // };
-  // canvas.onmousedown = function (ev) {
-  //   check(ev);
-  // };
-
   initTextures();
 
   // Specify the color for clearing <canvas>
@@ -295,31 +267,30 @@ function main() {
   requestAnimationFrame(tick);
 } // end of main
 
+
+
 // Map ============================================================
-var g_map = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-];
 
 
+
+
+var g_map = new Array(32);
+for (var i = 0; i < 32; i++) {
+  g_map[i] = new Array(32);
+  for (var j = 0; j < 32; j++) {
+    if (i % 7 == 0 && j % 13 == 0) {
+      g_map[i][j] = 1;
+    } else if ( i == 5 && j == 5) {
+      g_map[i][j] = 2;
+    } else {
+      g_map[i][j] = 0;
+    }
+  }
+}
 
 function drawMap() {
-  for (x = 0; x < 16; x++) {
-    for (y = 0; y < 16; y++) {
+  for (x = 0; x < 32; x++) {
+    for (y = 0; y < 32; y++) {
       if (g_map[x][y] == 1) {
         var body = new Cube();
         body.textureNum = 2;
@@ -332,7 +303,7 @@ function drawMap() {
         var body = new Cube();
         body.color = [1.0, 0.0, 0.0, 1.0];
         body.matrix
-          .setTranslate(-0.25, -2, 0.0)
+          .setTranslate(x - 4, -2, y - 4)
           .rotate(-5, 1, 0, 0)
           .scale(0.5, 0.3, 0.5);
         body.render();
@@ -341,7 +312,7 @@ function drawMap() {
         var yellow = new Cube();
         yellow.color = [1, 1, 0, 1];
         yellow.matrix
-          .setTranslate(0, -1.7, 0.0)
+          .setTranslate(x - 3.75, -1.7, y - 4)
           .rotate(-5, 1, 0, 0)
           .rotate(-g_yellowAngle, 0, 0, 1);
         var yellowCoordinates = new Matrix4(yellow.matrix);
@@ -363,27 +334,19 @@ function drawMap() {
   }
 }
 
-// Mouse & Keyboard move ===========================================
 
-// function mouseCam(ev) {
-//   coord = convertCoordinatesEventToGL(ev);
-//   if (coord[0] < 0.5) {
-//     // left side
-//     g_camera.panMLeft(coord[0] * -10);
-//   } else {
-//     g_camera.panMRight(coord[0] * -10);
-//   }
-// }
+
+
+
+
+
+// Mouse & Keyboard move ===========================================
 
 function keydown(ev) {
   if (ev.keyCode == 68) g_camera.right(); // "D" key
   if (ev.keyCode == 65) g_camera.left(); // "A" key
   if (ev.keyCode == 87) g_camera.forward(); // "W" key
   if (ev.keyCode == 83) g_camera.back(); // "S" key
-  if (ev.keyCode == 69) g_camera.panRight(); // "E" key
-  if (ev.keyCode == 81) g_camera.panLeft(); // "Q" key
-  // if (ev.keyCode == 38) g_camera.flyUp(); // Up arrow key
-  // if (ev.keyCode == 40) g_camera.flyDown(); // Down arrow key
 }
 
 // renderAllShapes =================================================
