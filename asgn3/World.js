@@ -380,10 +380,10 @@ function keydown(ev) {
   if (ev.keyCode == 65) g_camera.left(); // "A" key
   if (ev.keyCode == 87) g_camera.forward(); // "W" key
   if (ev.keyCode == 83) g_camera.back(); // "S" key
-  if (ev.keyCode == 69) g_camera.rotateRight(); // "E" key
-  if (ev.keyCode == 81) g_camera.rotateLeft(); // "Q" key
-  if (ev.keyCode == 38) g_camera.flyUp(); // Up arrow key
-  if (ev.keyCode == 40) g_camera.flyDown(); // Down arrow key
+  if (ev.keyCode == 69) g_camera.panRight(); // "E" key
+  if (ev.keyCode == 81) g_camera.panLeft(); // "Q" key
+  // if (ev.keyCode == 38) g_camera.flyUp(); // Up arrow key
+  // if (ev.keyCode == 40) g_camera.flyDown(); // Down arrow key
 }
 
 // renderAllShapes =================================================
