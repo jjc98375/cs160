@@ -2,9 +2,9 @@ class Camera
 {
 	constructor()
 	{
-		this.eye = new Vector3([0, 0, 20]);
-		this.at = new Vector3([0, 0, 19]);
-		this.up = new Vector3([0, 1, 0]);
+		this.eye = new Vector3([0, 0, 10]);
+		this.at = new Vector3([0, 0.5, 2]);
+		this.up = new Vector3([0, 0, 1]);
 
 		this.speed = 1
 		this.turnSpeed = 0.1

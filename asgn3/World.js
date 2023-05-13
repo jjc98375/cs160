@@ -59,6 +59,8 @@ var FSHADER_SOURCE = `
   uniform vec4 u_FragColor;
   uniform sampler2D u_Sampler0;
   uniform sampler2D u_Sampler1;
+  uniform sampler2D u_Sampler2;
+
   uniform int u_whichTexture;
 
   void main() {
@@ -70,7 +72,11 @@ var FSHADER_SOURCE = `
        gl_FragColor = texture2D(u_Sampler0, v_UV);  // Use texture0
     } else if(u_whichTexture == 1){
        gl_FragColor = texture2D(u_Sampler1, v_UV);  // Use texture1
-    } else {
+    } else if(u_whichTexture == 2){
+      gl_FragColor = texture2D(u_Sampler2, v_UV);  // Use texture2
+    }
+    
+    else {
        gl_FragColor = vec4(1,.2,.2,1);              // Error, Red
     }
   }`;
@@ -165,6 +171,12 @@ function connectVariablesToGLSL() {
     return false;
   }
 
+  u_Sampler2 = gl.getUniformLocation(gl.program, "u_Sampler2");
+  if (!u_Sampler2) {
+    console.log("Failed to get the storage location of u_Sampler2");
+    return false;
+  }
+
   u_whichTexture = gl.getUniformLocation(gl.program, "u_whichTexture");
   if (!u_whichTexture) {
     console.log("Failed to get the storage location of u_whichTexture");
@@ -186,6 +198,8 @@ var K = 10.0;
 function initTextures() {
   var water = new Image(); // Create the image object
   var suzumesky = new Image(); // Create the image object
+  var daijin = new Image();
+
   if (!water) {
     console.log("Failed to create the image object");
     return false;
@@ -194,6 +208,11 @@ function initTextures() {
     console.log("Failed to create the image1 object");
     return false;
   }
+  if (!daijin) {
+    console.log("Failed to create the image2 object");
+    return false;
+  }
+
   // Register the event handler to be called on loading an image
   water.onload = function () {
     loadTexture(water, u_Sampler0, 0);
@@ -201,9 +220,14 @@ function initTextures() {
   suzumesky.onload = function () {
     loadTexture(suzumesky, u_Sampler1, 1);
   };
+  daijin.onload = function () {
+    loadTexture(daijin, u_Sampler2, 2);
+  };
+
   // Tell the browser to load an image
   water.src = "animewater.jpg";
   suzumesky.src = "suzumeSky2.jpg";
+  daijin.src = "daijin3.jpg";
 
   return true;
 }
@@ -221,6 +245,12 @@ function loadTexture(image, sampler, num) {
     return false;
   }
 
+  var daijintexture = gl.createTexture();
+  if (!daijintexture) {
+    console.log("Failed to create the daijintexture object");
+    return false;
+  }
+
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1); // Flip the image's y axis
   gl.activeTexture(gl.TEXTURE0 + num); // Enable texture unit0
 
@@ -229,6 +259,8 @@ function loadTexture(image, sampler, num) {
     gl.bindTexture(gl.TEXTURE_2D, skyTexture);
   } else if (num == 1) {
     gl.bindTexture(gl.TEXTURE_2D, groundTexture);
+  } else if (num == 2) {
+    gl.bindTexture(gl.TEXTURE_2D, daijintexture);
   }
 
   // Set texture parameters
@@ -265,30 +297,42 @@ function main() {
 
 // Map ============================================================
 var g_map = [
-  [1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 1, 1, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 1],
-  [1, 0, 0, 2, 0, 0, 0, 0, 1],
-  [1, 0, 0, 0, 0, 1, 1, 0, 1],
-  [1, 0, 0, 0, 0, 0, 0, 0, 1],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
+
+
 function drawMap() {
-  for (x = 0; x < 8; x++) {
-    for (y = 0; y < 8; y++) {
+  for (x = 0; x < 16; x++) {
+    for (y = 0; y < 16; y++) {
       if (g_map[x][y] == 1) {
         var body = new Cube();
+        body.textureNum = 2;
         body.color = [1.0, 1.0, 1.0, 1.0];
-        body.matrix.translate(x - 4, -0.75, y - 4);
+        body.matrix.translate(x - 4, -2, y - 4);
+        body.matrix.scale(1, 1, 1); // scale x and z to be thinner, and y to be taller
         body.render();
       } else if (g_map[x][y] == 2) {
         // Draw the body cube
         var body = new Cube();
         body.color = [1.0, 0.0, 0.0, 1.0];
         body.matrix
-          .setTranslate(-0.25, -0.75, 0.0)
+          .setTranslate(-0.25, -2, 0.0)
           .rotate(-5, 1, 0, 0)
           .scale(0.5, 0.3, 0.5);
         body.render();
@@ -297,7 +341,7 @@ function drawMap() {
         var yellow = new Cube();
         yellow.color = [1, 1, 0, 1];
         yellow.matrix
-          .setTranslate(0, -0.5, 0.0)
+          .setTranslate(0, -1.7, 0.0)
           .rotate(-5, 1, 0, 0)
           .rotate(-g_yellowAngle, 0, 0, 1);
         var yellowCoordinates = new Matrix4(yellow.matrix);
@@ -332,14 +376,14 @@ function drawMap() {
 // }
 
 function keydown(ev) {
-  if (ev.keyCode == 68) g_camera.right();   // "D" key
-  if (ev.keyCode == 65) g_camera.left();    // "A" key
+  if (ev.keyCode == 68) g_camera.right(); // "D" key
+  if (ev.keyCode == 65) g_camera.left(); // "A" key
   if (ev.keyCode == 87) g_camera.forward(); // "W" key
-  if (ev.keyCode == 83) g_camera.back();    // "S" key
-  if (ev.keyCode == 69) g_camera.rotateRight();  // "E" key
-  if (ev.keyCode == 81) g_camera.rotateLeft();   // "Q" key
-  if (ev.keyCode == 82) g_camera.flyUp();    // "R" key
-  if (ev.keyCode == 70) g_camera.flyDown();  // "F" key
+  if (ev.keyCode == 83) g_camera.back(); // "S" key
+  if (ev.keyCode == 69) g_camera.rotateRight(); // "E" key
+  if (ev.keyCode == 81) g_camera.rotateLeft(); // "Q" key
+  if (ev.keyCode == 38) g_camera.flyUp(); // Up arrow key
+  if (ev.keyCode == 40) g_camera.flyDown(); // Down arrow key
 }
 
 // renderAllShapes =================================================
@@ -379,7 +423,7 @@ function renderAllShapes() {
   var sky = new Cube();
   sky.color = [0.6, 0.9, 0.95, 1];
   sky.textureNum = 1;
-  sky.matrix.scale(20, 20, 20);
+  sky.matrix.scale(30, 30, 30);
   sky.matrix.translate(-0.5, -0.4, -0.5);
   sky.render();
 
@@ -387,8 +431,8 @@ function renderAllShapes() {
   var floor = new Cube();
   floor.color = [1.0, 0.0, 0.0, 1.0];
   floor.textureNum = 0;
-  floor.matrix.translate(0, -0.75, 0.0);
-  floor.matrix.scale(10, 0, 10);
+  floor.matrix.translate(0, -2, 0.0);
+  floor.matrix.scale(22, 0, 22);
   floor.matrix.translate(-0.5, 0, -0.5);
   floor.render();
 
