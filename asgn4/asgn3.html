@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+
+<body onload="main()">
+   <!-- Create a canvas (400x400) Note: size and origin -->
+   <canvas id="webgl" width="800" height="800">
+      Please use a browser that supports "canvas"
+   </canvas>
+
+   <br>
+   <p id="numdot">XXX </p>
+    <br>
+
+    <p>
+      <button
+         type="button" id="normalOn">Normal On</button>
+      <button
+         type="button" id="normalOff">Normal Off</button>
+    </p>
+
+
+    <p>
+      Light X <input type="range" min="-250" max="250" value="0" class="slider" id="lightSliderX">
+      Light Y <input type="range" min="-250" max="250" value="100" class="slider" id="lightSliderY">
+      Light Z <input type="range" min="-250" max="250" value="-200" class="slider" id="lightSliderZ">
+    </p>
+
+    <p>
+      Magenta <input type="range" min="-45" max="45" value="0" class="slider" id="magentaSlide">
+      Animation:
+      <button type="button" id="animationMagentaOnButton">ON</button>
+      <button type="button" id="animationMagentaOffButton">OFF</button>
+    </p>
+
+    <p>
+      Yellow <input type="range" min="-45" max="45" value="0" class="slider" id="yellowSlide">
+      Animation:
+      <button type="button" id="animationYellowOnButton">ON</button>
+      <button type="button" id="animationYellowOffButton">OFF</button>
+
+    </p>
+
+    <label for="camera">Camera Angle:</label>
+    <input type="range" id="camera" name="camera" min="0" max="360" value="0" class = "slider"><br>
+
+    <p>
+       <b> Notes: </b> This world is modeled from the movie "Suzume" by Shinkai Makoto and his team.
+       This 3D world is motive from the scene where the main character, Suzume, first facing 
+       the Daijin cats and the door.
+       
+       This is a 3D world with a camera that can be rotated around the world, and user
+       can hover through the world with WASD keys. We have cute Daijin cats in this world. 
+    </p>
+
+
+
+
+   <br><br>
+  
+   <br><br>
+
+
+
+
+
+   <!-- javascript files containing functions for WebGL -->
+   <script src="lib/webgl-utils.js"></script>
+   <script src="lib/webgl-debug.js"></script>
+   <script src="lib/cuon-utils.js"></script>
+   <script src="lib/cuon-matrix-cse160.js"></script>
+
+   <!-- Add our asg js file -->
+   <script type=text/javascript src="Triangle.js"></script>
+   <script type=text/javascript src="Point.js"></script>
+   <script type=text/javascript src="Circle.js"></script>
+   <script type=text/javascript src="World.js"></script>
+   <script type=text/javascript src="Cube.js"></script>
+   <script type=text/javascript src="Camera.js"></script>
+   <script type=text/javascript src="Sphere.js"></script>
+
+
+</body>
+</html>
+
+<style>
+
+</style>
