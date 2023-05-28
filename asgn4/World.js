@@ -1,5 +1,3 @@
-
-
 // Global Variables
 var gl;
 var canvas;
@@ -31,7 +29,7 @@ let g_magentaAngle = 0;
 let g_yellowAnimation = false;
 let g_magentaAnimation = false;
 let g_normalOn = false;
-// var g_lightOn = true;
+var g_lightOn = true;
 let g_lightPos = [0, 1, 1];
 
 var drag = false;
@@ -72,7 +70,7 @@ var FSHADER_SOURCE = `
   uniform vec3 u_lightPos;
   uniform vec3 u_cameraPos;
   varying vec4 v_VertPos;
-  
+  uniform bool u_lightOn;
 
 
   void main() {
@@ -102,18 +100,115 @@ var FSHADER_SOURCE = `
     vec3 L = normalize(lightVector);
     vec3 N = normalize(v_Normal);
     float nDotL = max(dot(N,L), 0.0);
+
     // Reflection
     vec3 R = reflect(-L,N);
+
     // eye
     vec3 E = normalize(u_cameraPos-vec3(v_VertPos));
+
     // Specular
     float specular = pow(max(dot(E,R), 0.0), 10.0);
     vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.9;
     vec3 ambient = vec3(gl_FragColor) * 0.3;
 
-    gl_FragColor = vec4(specular+diffuse+ambient, 1.0);
-
+    if(u_lightOn) {
+      if(u_whichTexture == 0) {
+        gl_FragColor = vec4(specular+diffuse+ambient, 1.0);
+      } else {
+        gl_FragColor = vec4(diffuse+ambient, 1.0);
+      }
+    }
+    
   }`;
+
+// HTML ============================================================
+function addActionsForHtmlUI() {
+  document.getElementById("normalOn").onclick = function () {
+    g_normalOn = true;
+  };
+  document.getElementById("normalOff").onclick = function () {
+    g_normalOn = false;
+  };
+
+  document.getElementById("camera").addEventListener("mousemove", function () {
+    g_globalAngle = this.value;
+    renderAllShapes();
+  });
+
+  document.getElementById("animationYellowOffButton").onclick = function () {
+    g_yellowAnimation = false;
+  };
+  document.getElementById("animationYellowOnButton").onclick = function () {
+    g_yellowAnimation = true;
+  };
+  document.getElementById("animationMagentaOffButton").onclick = function () {
+    g_magentaAnimation = false;
+  };
+  document.getElementById("animationMagentaOnButton").onclick = function () {
+    g_magentaAnimation = true;
+  };
+
+  // document
+  //   .getElementById("magentaSlide")
+  //   .addEventListener("mousemove", function () {
+  //     g_magentaAngle = this.value;
+  //     renderAllShapes();
+  //   });
+  // document
+  //   .getElementById("yellowSlide")
+  //   .addEventListener("mousemove", function () {
+  //     g_yellowAngle = this.value;
+  //     renderAllShapes();
+  //   });
+
+  document
+    .getElementById("magentaSlide")
+    .addEventListener("mousemove", function (ev) {
+      if (ev.buttons == 1) {
+        g_magentaAngle = this.value;
+        renderAllShapes();
+      }
+    });
+  document
+    .getElementById("yellowSlide")
+    .addEventListener("mousemove", function (ev) {
+      if (ev.buttons == 1) {
+        g_yellowAngle = this.value;
+        renderAllShapes();
+      }
+    });
+  document
+    .getElementById("lightSliderX")
+    .addEventListener("mousemove", function (ev) {
+      if (ev.buttons == 1) {
+        g_lightPos[0] = this.value / 100;
+        renderAllShapes();
+      }
+    });
+  document
+    .getElementById("lightSliderY")
+    .addEventListener("mousemove", function (ev) {
+      if (ev.buttons == 1) {
+        g_lightPos[1] = this.value / 100;
+        renderAllShapes();
+      }
+    });
+  document
+    .getElementById("lightSliderZ")
+    .addEventListener("mousemove", function (ev) {
+      if (ev.buttons == 1) {
+        g_lightPos[2] = this.value / 100;
+        renderAllShapes();
+      }
+    });
+  document.getElementById("lightOn").onclick = function () {
+    g_lightOn = true;
+  };
+  document.getElementById("lightOff").onclick = function () {
+    g_lightOn = false;
+  };
+}
 
 // Compile Shader Programs and connect js to GLSL =================
 function connectVariablesToGLSL() {
@@ -151,6 +246,12 @@ function connectVariablesToGLSL() {
   u_whichTexture = gl.getUniformLocation(gl.program, "u_whichTexture");
   if (!u_whichTexture) {
     console.log("Failed to get the storage location of u_whichTexture");
+    return;
+  }
+
+  u_lightOn = gl.getUniformLocation(gl.program, "u_lightOn");
+  if (!u_lightOn) {
+    console.log("Failed to get u_lightOn");
     return;
   }
 
@@ -207,7 +308,6 @@ function connectVariablesToGLSL() {
     return false;
   }
 
-
   // var identityM = new Matrix4();
   // gl.uniformMatrix4fv(u_ModelMatrix, false, identityM.elements);
   // // gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, identityM.elements);
@@ -223,7 +323,7 @@ var K = 10.0;
 function initTextures() {
   var water = new Image(); // Create the image object
   var suzumesky = new Image(); // Create the image object
-  // var daijin = new Image(); 
+  // var daijin = new Image();
 
   if (!water) {
     console.log("Failed to create the image object");
@@ -319,7 +419,7 @@ var g_map = new Array(32);
 for (var i = 0; i < 32; i++) {
   g_map[i] = new Array(32);
   for (var j = 0; j < 32; j++) {
-    if (i == 10 && j == 10 || i == 20 && j == 20) {
+    if ((i == 10 && j == 10) || (i == 20 && j == 20)) {
       g_map[i][j] = 1;
     } else if (i == 5 && j == 5) {
       g_map[i][j] = 2;
@@ -338,14 +438,12 @@ function drawMap() {
   for (x = 0; x < 32; x++) {
     for (y = 0; y < 32; y++) {
       if (g_map[x][y] == 1) {
-        
         // obstacle.textureNum = 2;
         obstacle.color = [1.0, 1.0, 1.0, 1.0];
         obstacle.matrix.translate(x - 4, -2, y - 4);
         obstacle.matrix.scale(1, 1, 1); // scale x and z to be thinner, and y to be taller
         obstacle.renderfast();
       } else if (g_map[x][y] == 2) {
-        
         body.color = [1.0, 0.0, 0.0, 1.0];
         if (g_normalOn) body.textureNum = -3;
         body.matrix
@@ -355,7 +453,7 @@ function drawMap() {
         body.renderfast();
 
         // Draw a left arm
-        
+
         yellow.color = [1, 1, 0, 1];
         if (g_normalOn) yellow.textureNum = -3;
         yellow.matrix
@@ -367,7 +465,7 @@ function drawMap() {
         yellow.renderfast();
 
         // Test box
-       
+
         magenta.color = [1, 0, 1, 1];
         if (g_normalOn) magenta.textureNum = -3;
         magenta.matrix.set(yellowCoordinates);
@@ -377,8 +475,6 @@ function drawMap() {
           .scale(0.3, 0.3, 0.3)
           .translate(-0.5, 0, -0.001);
         magenta.renderfast();
-
-        
       }
     }
   }
@@ -427,7 +523,13 @@ function renderAllShapes() {
   // ------------------------------------------------------------------
 
   gl.uniform3f(u_lightPos, g_lightPos[0], g_lightPos[1], g_lightPos[2]);
-  gl.uniform3f(u_cameraPos, g_camera.eye.elements[0], g_camera.eye.elements[1], g_camera.eye.elements[2]);
+  gl.uniform3f(
+    u_cameraPos,
+    g_camera.eye.elements[0],
+    g_camera.eye.elements[1],
+    g_camera.eye.elements[2]
+  );
+  gl.uniform1i(u_lightOn, g_lightOn);
 
   // Sky ====================================
   var sky = new Cube();
@@ -451,7 +553,7 @@ function renderAllShapes() {
   var sphere = new Sphere();
   // sphere.color = [.9, .6, .95, 1];
   sphere.textureNum = -1;
-  if(g_normalOn) sphere.textureNum = -3;
+  if (g_normalOn) sphere.textureNum = -3;
   // sphere.matrix.scale(2, 2, 2);
   sphere.matrix.translate(-3, 0.2, 0.2);
   sphere.render();
@@ -499,8 +601,6 @@ function renderAllShapes() {
   //   .translate(-0.5, 0, -0.001);
   // magenta.render();
 
-
-
   // Map ====================================
   drawMap();
 
@@ -529,56 +629,6 @@ function sendTextToHTML(text, htmlID) {
 // ================================================================
 // Work from previous sections =====================================
 // ================================================================
-
-// HTML ============================================================
-function addActionsForHtmlUI() {
-  document.getElementById("normalOn").onclick = function () {
-    g_normalOn = true;
-  };
-  document.getElementById("normalOff").onclick = function () {
-    g_normalOn = false;
-  };
-
-  document.getElementById("camera").addEventListener("mousemove", function () {
-    g_globalAngle = this.value;
-    renderAllShapes();
-  });
-
-  document.getElementById("animationYellowOffButton").onclick = function () {
-    g_yellowAnimation = false;
-  };
-  document.getElementById("animationYellowOnButton").onclick = function () {
-    g_yellowAnimation = true;
-  };
-  document.getElementById("animationMagentaOffButton").onclick = function () {
-    g_magentaAnimation = false;
-  };
-  document.getElementById("animationMagentaOnButton").onclick = function () {
-    g_magentaAnimation = true;
-  };
-
-  // document
-  //   .getElementById("magentaSlide")
-  //   .addEventListener("mousemove", function () {
-  //     g_magentaAngle = this.value;
-  //     renderAllShapes();
-  //   });
-  // document
-  //   .getElementById("yellowSlide")
-  //   .addEventListener("mousemove", function () {
-  //     g_yellowAngle = this.value;
-  //     renderAllShapes();
-  //   });
-
-  document.getElementById('magentaSlide').addEventListener('mousemove', function (ev) { if (ev.buttons == 1) { g_magentaAngle = this.value; renderAllShapes(); }});
-  document.getElementById('yellowSlide').addEventListener('mousemove', function (ev) { if (ev.buttons == 1) { g_yellowAngle = this.value; renderAllShapes(); }});
-  document.getElementById('lightSliderX').addEventListener('mousemove', function(ev) { if(ev.buttons == 1){ g_lightPos[0] = this.value/100; renderAllShapes();}});
-  document.getElementById('lightSliderY').addEventListener('mousemove', function(ev) { if(ev.buttons == 1){ g_lightPos[1] = this.value/100; renderAllShapes();}});
-  document.getElementById('lightSliderZ').addEventListener('mousemove', function (ev) { if (ev.buttons == 1) { g_lightPos[2] = this.value / 100; renderAllShapes(); }});
-  
-
-
-}
 
 // Get Canvas and GL Context ======================================
 function setupWebGL() {
@@ -618,7 +668,7 @@ function updateAnimationAngles() {
     g_magentaAngle = 45 * Math.sin(3 * g_seconds);
   }
 
-  g_lightPos[0]=Math.cos(g_seconds);
+  g_lightPos[0] = Math.cos(g_seconds);
 }
 
 // Get Coordinates =================================================
