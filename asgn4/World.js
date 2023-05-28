@@ -1,7 +1,4 @@
-// Constants
-const POINT = 0;
-const TRIANGLE = 1;
-const CIRCLE = 2;
+
 
 // Global Variables
 var gl;
@@ -25,7 +22,6 @@ var g_camera;
 // UI
 let g_selectedColor = [0.5, 0.5, 0.5, 1.0];
 let g_selectedSize = 5;
-let g_selectedType = POINT;
 let g_selectedsCount = 12;
 let g_globalAngle = 0;
 let g_yellowAngle = 0;
@@ -66,7 +62,6 @@ var FSHADER_SOURCE = `
   uniform vec4 u_FragColor;
   uniform sampler2D u_Sampler0;
   uniform sampler2D u_Sampler1;
-  uniform sampler2D u_Sampler2;
 
   uniform int u_whichTexture;
   uniform vec3 u_lightPos;
@@ -85,8 +80,6 @@ var FSHADER_SOURCE = `
        gl_FragColor = texture2D(u_Sampler0, v_UV);  // Use texture0
     } else if(u_whichTexture == 1){
        gl_FragColor = texture2D(u_Sampler1, v_UV);  // Use texture1
-    } else if(u_whichTexture == 2){
-      gl_FragColor = texture2D(u_Sampler2, v_UV);  // Use texture2
     } else {
        gl_FragColor = vec4(1,.2,.2,1);              // Error, Red
     }
@@ -186,11 +179,6 @@ function connectVariablesToGLSL() {
     return false;
   }
 
-  u_Sampler2 = gl.getUniformLocation(gl.program, "u_Sampler2");
-  if (!u_Sampler2) {
-    console.log("Failed to get the storage location of u_Sampler2");
-    return false;
-  }
 
   // var identityM = new Matrix4();
   // gl.uniformMatrix4fv(u_ModelMatrix, false, identityM.elements);
@@ -207,7 +195,7 @@ var K = 10.0;
 function initTextures() {
   var water = new Image(); // Create the image object
   var suzumesky = new Image(); // Create the image object
-  var daijin = new Image(); 
+  // var daijin = new Image(); 
 
   if (!water) {
     console.log("Failed to create the image object");
@@ -217,10 +205,10 @@ function initTextures() {
     console.log("Failed to create the image1 object");
     return false;
   }
-  if (!daijin) {
-    console.log("Failed to create the image2 object");
-    return false;
-  }
+  // if (!daijin) {
+  //   console.log("Failed to create the image2 object");
+  //   return false;
+  // }
 
   // Register the event handler to be called on loading an image
   water.onload = function () {
@@ -229,14 +217,14 @@ function initTextures() {
   suzumesky.onload = function () {
     loadTexture(suzumesky, u_Sampler1, 1);
   };
-  daijin.onload = function () {
-    loadTexture(daijin, u_Sampler2, 2);
-  };
+  // daijin.onload = function () {
+  //   loadTexture(daijin, u_Sampler2, 2);
+  // };
 
   // Tell the browser to load an image
   water.src = "animewater.jpg";
   suzumesky.src = "suzumeSky2.jpg";
-  daijin.src = "daijin3.jpg";
+  // daijin.src = "daijin3.jpg";
 
   return true;
 }
@@ -254,11 +242,11 @@ function loadTexture(image, sampler, num) {
     return false;
   }
 
-  var daijintexture = gl.createTexture();
-  if (!daijintexture) {
-    console.log("Failed to create the daijintexture object");
-    return false;
-  }
+  // var daijintexture = gl.createTexture();
+  // if (!daijintexture) {
+  //   console.log("Failed to create the daijintexture object");
+  //   return false;
+  // }
 
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1); // Flip the image's y axis
   gl.activeTexture(gl.TEXTURE0 + num); // Enable texture unit0
@@ -549,11 +537,11 @@ function addActionsForHtmlUI() {
   //     renderAllShapes();
   //   });
 
-  document.getElementById('magentaSlide').addEventListener('mousemove', function (ev) { if (ev.buttons == 1) { g_magentaAngle = this.value; renderScene(); }});
-  document.getElementById('yellowSlide').addEventListener('mousemove', function (ev) { if (ev.buttons == 1) { g_yellowAngle = this.value; renderScene(); }});
-  document.getElementById('lightSliderX').addEventListener('mousemove', function(ev) { if(ev.buttons == 1){ g_lightPos[0] = this.value/100; renderScene();}});
-  document.getElementById('lightSliderY').addEventListener('mousemove', function(ev) { if(ev.buttons == 1){ g_lightPos[1] = this.value/100; renderScene();}});
-  document.getElementById('lightSliderZ').addEventListener('mousemove', function (ev) { if (ev.buttons == 1) { g_lightPos[2] = this.value / 100; renderScene(); }});
+  document.getElementById('magentaSlide').addEventListener('mousemove', function (ev) { if (ev.buttons == 1) { g_magentaAngle = this.value; renderAllShapes(); }});
+  document.getElementById('yellowSlide').addEventListener('mousemove', function (ev) { if (ev.buttons == 1) { g_yellowAngle = this.value; renderAllShapes(); }});
+  document.getElementById('lightSliderX').addEventListener('mousemove', function(ev) { if(ev.buttons == 1){ g_lightPos[0] = this.value/100; renderAllShapes();}});
+  document.getElementById('lightSliderY').addEventListener('mousemove', function(ev) { if(ev.buttons == 1){ g_lightPos[1] = this.value/100; renderAllShapes();}});
+  document.getElementById('lightSliderZ').addEventListener('mousemove', function (ev) { if (ev.buttons == 1) { g_lightPos[2] = this.value / 100; renderAllShapes(); }});
   
 
 
