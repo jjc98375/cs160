@@ -5,6 +5,7 @@ var gl;
 var canvas;
 var a_Position;
 var a_UV;
+var a_Normal;
 var u_FragColor;
 var u_Size;
 var u_ModelMatrix;
@@ -16,6 +17,7 @@ var u_Sampler1;
 var u_whichTexture;
 var u_workingTexture;
 var u_lightPos;
+var u_cameraPos;
 
 var g_camera;
 
@@ -29,7 +31,8 @@ let g_magentaAngle = 0;
 let g_yellowAnimation = false;
 let g_magentaAnimation = false;
 let g_normalOn = false;
-let g_lightPos = [0, 1, -2];
+// var g_lightOn = true;
+let g_lightPos = [0, 1, 1];
 
 var drag = false;
 
@@ -43,6 +46,7 @@ var VSHADER_SOURCE = `
   varying vec3 v_Normal;
   varying vec4 v_VertPos;
   uniform mat4 u_ModelMatrix;
+  // uniform mat4 u_NormalMatrix;
   uniform mat4 u_GlobalRotateMatrix;
   uniform mat4 u_ViewMatrix;
   uniform mat4 u_ProjectionMatrix;
@@ -50,6 +54,7 @@ var VSHADER_SOURCE = `
   void main() {
     gl_Position = u_ProjectionMatrix * u_ViewMatrix * u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
     v_UV = a_UV;
+    // v_Normal = normalize(vec3(u_NormalMatrix * vec4(a_Normal,1)));
     v_Normal = a_Normal;
     v_VertPos = u_ModelMatrix * a_Position;
   }`;
@@ -65,6 +70,7 @@ var FSHADER_SOURCE = `
 
   uniform int u_whichTexture;
   uniform vec3 u_lightPos;
+  uniform vec3 u_cameraPos;
   varying vec4 v_VertPos;
   
 
@@ -84,13 +90,29 @@ var FSHADER_SOURCE = `
        gl_FragColor = vec4(1,.2,.2,1);              // Error, Red
     }
 
-    vec3 lightVector = vec3(v_VertPos) - u_lightPos;
+    vec3 lightVector = u_lightPos-vec3(v_VertPos);
     float r = length(lightVector);
-    if (r < 1.0) {
-      gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-    } else if(r < 2.0) {
-      gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-    }
+    // if (r < 1.0) {
+    //   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    // } else if(r < 2.0) {
+    //   gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+    // }
+
+    // N dot L
+    vec3 L = normalize(lightVector);
+    vec3 N = normalize(v_Normal);
+    float nDotL = max(dot(N,L), 0.0);
+    // Reflection
+    vec3 R = reflect(-L,N);
+    // eye
+    vec3 E = normalize(u_cameraPos-vec3(v_VertPos));
+    // Specular
+    float specular = pow(max(dot(E,R), 0.0), 10.0);
+    vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.9;
+    vec3 ambient = vec3(gl_FragColor) * 0.3;
+
+    gl_FragColor = vec4(specular+diffuse+ambient, 1.0);
+
   }`;
 
 // Compile Shader Programs and connect js to GLSL =================
@@ -100,6 +122,12 @@ function connectVariablesToGLSL() {
     console.log("Failed to intialize shaders.");
     return;
   }
+
+  // u_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix');
+  // if (!u_NormalMatrix) {
+  //     console.log('Failed to get u_NormalMatrix');
+  //     return;
+  // }
 
   // Get the storage location of attribute variable ==============
   a_Position = gl.getAttribLocation(gl.program, "a_Position");
@@ -291,7 +319,7 @@ var g_map = new Array(32);
 for (var i = 0; i < 32; i++) {
   g_map[i] = new Array(32);
   for (var j = 0; j < 32; j++) {
-    if (i % 7 == 0 && j % 13 == 0) {
+    if (i == 10 && j == 10 || i == 20 && j == 20) {
       g_map[i][j] = 1;
     } else if (i == 5 && j == 5) {
       g_map[i][j] = 2;
@@ -302,27 +330,32 @@ for (var i = 0; i < 32; i++) {
 }
 
 function drawMap() {
+  var obstacle = new Cube();
+  var body = new Cube();
+  var yellow = new Cube();
+  var magenta = new Cube();
+
   for (x = 0; x < 32; x++) {
     for (y = 0; y < 32; y++) {
       if (g_map[x][y] == 1) {
-        var body = new Cube();
-        // body.textureNum = 2;
-        body.color = [1.0, 1.0, 1.0, 1.0];
-        body.matrix.translate(x - 4, -2, y - 4);
-        body.matrix.scale(1, 1, 1); // scale x and z to be thinner, and y to be taller
-        body.render();
+        
+        // obstacle.textureNum = 2;
+        obstacle.color = [1.0, 1.0, 1.0, 1.0];
+        obstacle.matrix.translate(x - 4, -2, y - 4);
+        obstacle.matrix.scale(1, 1, 1); // scale x and z to be thinner, and y to be taller
+        obstacle.renderfast();
       } else if (g_map[x][y] == 2) {
-        var body = new Cube();
+        
         body.color = [1.0, 0.0, 0.0, 1.0];
         if (g_normalOn) body.textureNum = -3;
         body.matrix
           .setTranslate(x - 4, -2, y - 4)
           .rotate(-5, 1, 0, 0)
           .scale(0.5, 0.3, 0.5);
-        body.render();
+        body.renderfast();
 
         // Draw a left arm
-        var yellow = new Cube();
+        
         yellow.color = [1, 1, 0, 1];
         if (g_normalOn) yellow.textureNum = -3;
         yellow.matrix
@@ -331,10 +364,10 @@ function drawMap() {
           .rotate(-g_yellowAngle, 0, 0, 1);
         var yellowCoordinates = new Matrix4(yellow.matrix);
         yellow.matrix.scale(0.25, 0.7, 0.5).translate(-0.5, 0, 0);
-        yellow.render();
+        yellow.renderfast();
 
         // Test box
-        var magenta = new Cube();
+       
         magenta.color = [1, 0, 1, 1];
         if (g_normalOn) magenta.textureNum = -3;
         magenta.matrix.set(yellowCoordinates);
@@ -343,7 +376,7 @@ function drawMap() {
           .rotate(g_magentaAngle, 0, 0, 1)
           .scale(0.3, 0.3, 0.3)
           .translate(-0.5, 0, -0.001);
-        magenta.render();
+        magenta.renderfast();
 
         
       }
@@ -367,9 +400,6 @@ function renderAllShapes() {
   var projMat = new Matrix4();
   projMat.setPerspective(50, (1 * canvas.width) / canvas.height, 0.1, 200);
   gl.uniformMatrix4fv(u_ProjectionMatrix, false, projMat.elements);
-
-  gl.uniform3f(u_lightPos, g_lightPos[0], g_lightPos[1], g_lightPos[2]);
-
 
   var viewMat = new Matrix4();
   viewMat.setLookAt(
@@ -396,6 +426,9 @@ function renderAllShapes() {
   // Draw Shapes !!! ------------------------------------------------
   // ------------------------------------------------------------------
 
+  gl.uniform3f(u_lightPos, g_lightPos[0], g_lightPos[1], g_lightPos[2]);
+  gl.uniform3f(u_cameraPos, g_camera.eye.elements[0], g_camera.eye.elements[1], g_camera.eye.elements[2]);
+
   // Sky ====================================
   var sky = new Cube();
   sky.color = [0.8, 0.8, 0.8, 1];
@@ -403,7 +436,7 @@ function renderAllShapes() {
 
   sky.matrix.scale(-20, -20, -20);
   sky.matrix.translate(-0.5, -0.4, -0.5);
-  sky.render();
+  sky.renderfast();
 
   // Floor ====================================
   var floor = new Cube();
@@ -412,7 +445,7 @@ function renderAllShapes() {
   floor.matrix.translate(0, -2, 0.0);
   floor.matrix.scale(20, 0, 20);
   floor.matrix.translate(-0.5, 0, -0.5);
-  floor.render();
+  floor.renderfast();
 
   // Sphere ====================================
   var sphere = new Sphere();
@@ -420,16 +453,16 @@ function renderAllShapes() {
   sphere.textureNum = -1;
   if(g_normalOn) sphere.textureNum = -3;
   // sphere.matrix.scale(2, 2, 2);
-  sphere.matrix.translate(-1, -1.5, -1.5);
+  sphere.matrix.translate(-3, 0.2, 0.2);
   sphere.render();
 
   // light ====================================
   var light = new Cube();
   light.color = [2, 2, 0, 1];
   light.matrix.translate(g_lightPos[0], g_lightPos[1], g_lightPos[2]);
-  light.matrix.scale(0.1, 0.1, 0.1);
+  light.matrix.scale(-0.1, -0.1, -0.1);
   light.matrix.translate(-0.5, -0.5, -0.5);
-  light.render();
+  light.renderfast();
 
   // Whole Body ====================================
   // // Draw the body cube
@@ -585,7 +618,7 @@ function updateAnimationAngles() {
     g_magentaAngle = 45 * Math.sin(3 * g_seconds);
   }
 
-  g_lightPos[0]=2*cos(g_seconds);
+  g_lightPos[0]=Math.cos(g_seconds);
 }
 
 // Get Coordinates =================================================
