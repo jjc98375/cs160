@@ -318,13 +318,12 @@ function drawMap() {
     for (y = 0; y < 32; y++) {
       if (g_map[x][y] == 1) {
         var body = new Cube();
-        body.textureNum = 2;
+        // body.textureNum = 2;
         body.color = [1.0, 1.0, 1.0, 1.0];
         body.matrix.translate(x - 4, -2, y - 4);
         body.matrix.scale(1, 1, 1); // scale x and z to be thinner, and y to be taller
         body.render();
       } else if (g_map[x][y] == 2) {
-        // Draw the body cube
         var body = new Cube();
         body.color = [1.0, 0.0, 0.0, 1.0];
         if (g_normalOn) body.textureNum = -3;
@@ -423,7 +422,7 @@ function renderAllShapes() {
   floor.color = [1.0, 0.0, 0.0, 1.0];
   floor.textureNum = 0;
   floor.matrix.translate(0, -2, 0.0);
-  floor.matrix.scale(22, 0, 22);
+  floor.matrix.scale(20, 0, 20);
   floor.matrix.translate(-0.5, 0, -0.5);
   floor.render();
 
@@ -443,6 +442,42 @@ function renderAllShapes() {
   light.matrix.scale(0.1, 0.1, 0.1);
   light.matrix.translate(-0.5, -0.5, -0.5);
   light.render();
+
+  // Whole Body ====================================
+  // // Draw the body cube
+  // var body = new Cube();
+  // if(g_normalOn) body.textureNum = -3;
+  // body.color = [1.0, 0.0, 0.0, 1.0];
+  // body.matrix
+  //   .setTranslate(-0.25, -0.75, 0.0)
+  //   .rotate(-5, 1, 0, 0)
+  //   .scale(0.5, 0.3, 0.5);
+  // body.render();
+
+  // // Draw a left arm
+  // var yellow = new Cube();
+  // if(g_normalOn) yellow.textureNum = -3;
+  // yellow.color = [1, 1, 0, 1];
+  // yellow.matrix
+  //   .setTranslate(0, -0.5, 0.0)
+  //   .rotate(-5, 1, 0, 0)
+  //   .rotate(-g_yellowAngle, 0, 0, 1);
+  // var yellowCoordinates = new Matrix4(yellow.matrix);
+  // yellow.matrix.scale(0.25, 0.7, 0.5).translate(-0.5, 0, 0);
+  // yellow.render();
+
+  // // Test box
+  // var magenta = new Cube();
+  // if(g_normalOn) magenta.textureNum = -3;
+  // magenta.color = [1, 0, 1, 1];
+  // magenta.matrix.set(yellowCoordinates);
+  // magenta.matrix
+  //   .translate(0, 0.65, 0)
+  //   .rotate(g_magentaAngle, 0, 0, 1)
+  //   .scale(0.3, 0.3, 0.3)
+  //   .translate(-0.5, 0, -0.001);
+  // magenta.render();
+
 
 
   // Map ====================================
@@ -483,10 +518,10 @@ function addActionsForHtmlUI() {
     g_normalOn = false;
   };
 
-  // document.getElementById("camera").addEventListener("mousemove", function () {
-  //   g_globalAngle = this.value;
-  //   renderAllShapes();
-  // });
+  document.getElementById("camera").addEventListener("mousemove", function () {
+    g_globalAngle = this.value;
+    renderAllShapes();
+  });
 
   document.getElementById("animationYellowOffButton").onclick = function () {
     g_yellowAnimation = false;
