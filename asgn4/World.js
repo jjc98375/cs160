@@ -149,18 +149,6 @@ function addActionsForHtmlUI() {
     g_magentaAnimation = true;
   };
 
-  // document
-  //   .getElementById("magentaSlide")
-  //   .addEventListener("mousemove", function () {
-  //     g_magentaAngle = this.value;
-  //     renderAllShapes();
-  //   });
-  // document
-  //   .getElementById("yellowSlide")
-  //   .addEventListener("mousemove", function () {
-  //     g_yellowAngle = this.value;
-  //     renderAllShapes();
-  //   });
 
   document
     .getElementById("magentaSlide")
@@ -308,11 +296,6 @@ function connectVariablesToGLSL() {
     return false;
   }
 
-  // var identityM = new Matrix4();
-  // gl.uniformMatrix4fv(u_ModelMatrix, false, identityM.elements);
-  // // gl.uniformMatrix4fv(u_GlobalRotateMatrix, false, identityM.elements);
-  // gl.uniformMatrix4fv(u_ProjectionMatrix, false, identityM.elements);
-  // gl.uniformMatrix4fv(u_ViewMatrix, false, identityM.elements);
 }
 
 var body, yellow, magenta;
@@ -419,7 +402,7 @@ var g_map = new Array(32);
 for (var i = 0; i < 32; i++) {
   g_map[i] = new Array(32);
   for (var j = 0; j < 32; j++) {
-    if ((i == 10 && j == 10) || (i == 20 && j == 20)) {
+    if ((i == 3 && j == 7) || (i == 20 && j == 20)) {
       g_map[i][j] = 1;
     } else if (i == 5 && j == 5) {
       g_map[i][j] = 2;
@@ -440,6 +423,7 @@ function drawMap() {
       if (g_map[x][y] == 1) {
         // obstacle.textureNum = 2;
         obstacle.color = [1.0, 1.0, 1.0, 1.0];
+        if (g_normalOn) obstacle.textureNum = -3;
         obstacle.matrix.translate(x - 4, -2, y - 4);
         obstacle.matrix.scale(1, 1, 1); // scale x and z to be thinner, and y to be taller
         obstacle.renderfast();
@@ -566,41 +550,6 @@ function renderAllShapes() {
   light.matrix.translate(-0.5, -0.5, -0.5);
   light.renderfast();
 
-  // Whole Body ====================================
-  // // Draw the body cube
-  // var body = new Cube();
-  // if(g_normalOn) body.textureNum = -3;
-  // body.color = [1.0, 0.0, 0.0, 1.0];
-  // body.matrix
-  //   .setTranslate(-0.25, -0.75, 0.0)
-  //   .rotate(-5, 1, 0, 0)
-  //   .scale(0.5, 0.3, 0.5);
-  // body.render();
-
-  // // Draw a left arm
-  // var yellow = new Cube();
-  // if(g_normalOn) yellow.textureNum = -3;
-  // yellow.color = [1, 1, 0, 1];
-  // yellow.matrix
-  //   .setTranslate(0, -0.5, 0.0)
-  //   .rotate(-5, 1, 0, 0)
-  //   .rotate(-g_yellowAngle, 0, 0, 1);
-  // var yellowCoordinates = new Matrix4(yellow.matrix);
-  // yellow.matrix.scale(0.25, 0.7, 0.5).translate(-0.5, 0, 0);
-  // yellow.render();
-
-  // // Test box
-  // var magenta = new Cube();
-  // if(g_normalOn) magenta.textureNum = -3;
-  // magenta.color = [1, 0, 1, 1];
-  // magenta.matrix.set(yellowCoordinates);
-  // magenta.matrix
-  //   .translate(0, 0.65, 0)
-  //   .rotate(g_magentaAngle, 0, 0, 1)
-  //   .scale(0.3, 0.3, 0.3)
-  //   .translate(-0.5, 0, -0.001);
-  // magenta.render();
-
   // Map ====================================
   drawMap();
 
@@ -681,8 +630,6 @@ function convertCoordinatesEventToGL(ev) {
   x = (x - rect.left - canvas.width / 2) / (canvas.width / 2);
   y = (canvas.height / 2 - (y - rect.top)) / (canvas.height / 2);
 
-  // Print coordinate in console
-  // console.log("("+x+","+y+")");
 
   return [x, y];
 }
