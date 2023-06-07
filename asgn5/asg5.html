@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>ASGN 5 - Joshua Cho</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+      }
+      #c {
+        width: 1000px;
+        height: 1000px;
+        display: block;
+      }
+
+      .split {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 1000px;
+        height: 500px;
+        display: flex;
+      }
+      .split > div {
+        flex: 1;
+        border: 1px solid black;
+        overflow: stretch;
+      }
+      .split > div {
+        width: 1000px;
+        height: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+
+    <div class="split">
+      <div id="view1" tabindex="1"></div>
+      <div id="view2" tabindex="2"></div>
+    </div>
+
+    <p>
+      <script type="importmap">
+        {
+          "imports": {
+            "three": "./three.js-master/build/three.module.js",
+            "three/addons/": "./three.js-master/jsm/"
+          }
+        }
+      </script>
+      <script type="module" src="asg5.js"></script>
+    </p>
+  </body>
+</html>
